@@ -1,15 +1,19 @@
 #include <QCoreApplication>
-
+#include <QList>
 class Node_graph{
-    int line;
+    //int line;
+    int me;
     Node_graph *father;
     int children[14];
-    int hfunc;
-    int gfunc;
+    double hfunc;
+    double gfunc;
+    double ffunc;
 
-    Node_graph(int linee, int *son, int size){
+    Node_graph(int mee, int *son, int size){
+        me = mee;
         father = fatherr;
-        line = linee;
+      //  line = linee;
+        ffunc = 0;
         for(int i =0; i<= size; i++){
             if(i == size){
                 children[i] = 0;
@@ -20,7 +24,7 @@ class Node_graph{
         }
     }
 };
-
+// azul=1, amarelo=2, vermelho=3, verde=4
 // linha, pai, filhos,
 class graph{
     Node_graph E1;
@@ -38,6 +42,11 @@ class graph{
     Node_graph E13;
     Node_graph E14;
     int distance[14][14];
+    int azul[6];
+    int amarelo[6];
+    int vermelho[6];
+    int verde[6];
+    QList<Node_graph> list_graph;
 
     graph(){
           int array1[1] = {2};
@@ -54,23 +63,23 @@ class graph{
           int array12[1] = {8};
           int array13[3] = {3, 4, 14};
           int array14[1] = {13};
-          E1 = new Node_graph(1,array1[], 1);
-          E2 = new Node_graph(1,array2[], 3);
-          E3 = new Node_graph(1,array3[], 4);
-          E4 = new Node_graph(1,array4[], 4);
-          E5 = new Node_graph(1,array5[], 4);
-          E6 = new Node_graph(1,array6[], 1);
-          E7 = new Node_graph(1,array7[], 1);
-          E8 = new Node_graph(1,array8[], 4);
-          E9 = new Node_graph(1,array9[], 4);
-          E10 = new Node_graph(1,array10[], 1);
-          E11 = new Node_graph(1,array11[], 1);
-          E12 = new Node_graph(1,array12[], 1);
-          E13 = new Node_graph(1,array13[], 3);
-          E14 = new Node_graph(1,array14[], 1);
+          list_graph.append(E1 = new Node_graph(1,array1[], 1));
+          list_graph.append(E2 = new Node_graph(2,array2[], 3));
+          list_graph.append(E3 = new Node_graph(3,array3[], 4));
+          list_graph.append(E4 = new Node_graph(4,array4[], 4));
+          list_graph.append(E5 = new Node_graph(5,array5[], 4));
+          list_graph.append(E6 = new Node_graph(6,array6[], 1));
+          list_graph.append(E7 = new Node_graph(7,array7[], 1));
+          list_graph.append(E8 = new Node_graph(8,array8[], 4));
+          list_graph.append(E9 = new Node_graph(9,array9[], 4));
+          list_graph.append(E10 = new Node_graph(10,array10[], 1));
+          list_graph.append(E11 = new Node_graph(11,array11[], 1));
+          list_graph.append(E12 = new Node_graph(12,array12[], 1));
+          list_graph.append(E13 = new Node_graph(13,array13[], 3));
+          list_graph.append(E14 = new Node_graph(14,array14[], 1));
           distance = {{ 0 , 11 , 20 , 27 , 40 , 43 , 39 , 28 , 18 , 10 , 18 , 30 , 30 , 32 },
                       {11 , 0  , 9  , 16 , 29 , 32 , 28 , 19 , 11 , 4  , 17 , 23 , 21 , 24 },
-                      {20 , 9  , 0  , 7  , 20 , 22 , 19 , 15 , 10 , 11 , 21 , 21 , 13 , 18 },
+                      {20 , 9  , 0  , 7  , 20 , 22 , 19 , 15 , 10 , 11 , 21 , 21 , 13 , 18 },start
                       {27 , 16 , 7  , 0  , 13 , 16 , 12 , 13 , 13 , 18 , 26 , 21 , 11 , 17 },
                       {40 , 29 , 20 , 13 , 0  , 3  , 2  , 21 , 25 , 31 , 38 , 27 , 16 , 20 },
                       {43 , 32 , 22 , 16 , 3  , 0  , 4  , 23 , 28 , 33 , 41 , 30 , 17 , 20 },
@@ -83,9 +92,41 @@ class graph{
                       {30 , 21 , 13 , 11 , 16 , 17 , 13 , 25 , 23 , 20 , 35 , 31 , 0  , 5  },
                       {32 , 24 , 18 , 17 , 20 , 20 , 17 , 30 , 28 , 23 , 39 , 37 , 5  , 0  }
                       };
+          azul     = {1, 2, 3 , 4 , 5 , 6 };
+          amarelo  = {2, 5, 7 , 8 , 9 , 10};
+          vermelho = {3, 9, 11, 14, 0 , 0 };
+          verde    = {4, 8, 12, 13, 14, 0 };
+
     }
 
-    void
+    void search(int start, int end){
+
+      Node_graph *actual = list_graph.operator(start-1);
+      while(actual->me != end){
+        //gerar os filhos e setando o pai e gerando as heuristicas e colocando na fila.
+          for(int i=0; actual->children[i] != 0; i++){
+            Node_graph *children = list_graph.operator(actual->children[i] - 1);
+            children->father = actual;        // quando eu faço isso father aponta para start?
+            //gerar hn = pegar distancia na tabela e fazer regra de 3 para mudar para tempo
+            children->hfunc = distance[children->me -1][end-1];
+            children->hfunc = children->hfunc/30;
+            //gerar gn
+            Node_graph *next_children = children;
+            Node_graph *next_father = children->father;
+            while(next_father->me != start){
+              children->ffunc =
+            }
+
+          }
+        // percorrer a fila para saber qual o próximo nó a ser analisado.
+      }
+      if(actual == end){
+
+      }
+      else{
+
+      }
+    }
 
 // youcomplete-me vim
 
